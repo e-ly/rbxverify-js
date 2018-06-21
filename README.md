@@ -9,7 +9,7 @@ Just for thos who are lazy, really.
 ## Example (@src/example.js)
 ```js
 
-let rbxVerify = require('rbxverify')
+const rbxVerify = require('rbxverify')
 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, 1000 * seconds))

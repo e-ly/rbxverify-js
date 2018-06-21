@@ -1,0 +1,15 @@
+{
+  "name": "rbxverify",
+  "version": "1.0.0",
+  "description": "simple verification for roblox",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lenneth <elenneth1@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bloxy": "^1.1.0",
+    "uuid": "^3.2.1"
+  }
+}

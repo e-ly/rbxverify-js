@@ -1,12 +1,12 @@
 
 
 
-## RbxVerify-js
+# RbxVerify-js
 
 Its a really, really simple verification module.
 Just for thos who are lazy, really.
 
-# Example (@src/example.js)
+## Example (@src/example.js)
 ```js
 
 const rbxVerify = require('rbxverify')

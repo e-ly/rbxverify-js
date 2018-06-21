@@ -1,7 +1,7 @@
 
 
 
-let rbxVerify = require('./index')
+const rbxVerify = require('./index')
 
 function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, 1000 * seconds))
@@ -18,7 +18,7 @@ rbxVerify.verify(myKeyId, targetUserId)
         `Token: ${status.vToken}`
     )
 
-    // Wait five seconds
+    // Wait ten seconds
     await sleep(10)
 
     let status2 = await rbxVerify.verify(myKeyId)

@@ -26,7 +26,7 @@ rbxVerify.verify(myKeyId, targetUserId)
         `Token: ${status.vToken}`
     )
 
-    // Wait five seconds
+    // Wait ten seconds
     await sleep(10)
 
     let status2 = await rbxVerify.verify(myKeyId)

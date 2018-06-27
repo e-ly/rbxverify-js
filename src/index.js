@@ -2,12 +2,16 @@
 
 
 const Roblox = require('bloxy'),
-    uuidv4 = require('uuid/v4'),
+    randomWords = require('random-words'),
     Spidey = new Roblox()
     
 
 const inProgress = []
 const verifiedUsers = []
+
+function randomWrds() {
+    return randomWords({ exactly: 5}).join(' ')
+}
 
 function getProgressData(keyId) {
     return inProgress.find(progressData => 
@@ -24,7 +28,7 @@ function deleteProgressData(keyId) {
 }
 function addProgressData(keyId, userId) {   
     // Automatically generated a token
-    let token = uuidv4().substr(1, 6)
+    let token = randomWrds()
     let progressData = {
         keyId: keyId,
         userId: userId,
@@ -35,8 +39,7 @@ function addProgressData(keyId, userId) {
     return progressData
 }
 function genNewVToken(keyId) {
-    getProgressData(keyId).vToken = uuidv4()
-    .substr(1, 6)
+    getProgressData(keyId).vToken = randomWrds()
 }
 async function findTokenInProfile(userId, vToken) {
     let profile = await Spidey.getUserById(userId)

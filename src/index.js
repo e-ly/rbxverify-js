@@ -2,9 +2,7 @@
 
 
 const Roblox = require('bloxy'),
-    randomWords = require('random-words'),
-    Spidey = new Roblox()
-    
+    randomWords = require('random-words')  
 
 const inProgress = []
 const verifiedUsers = []
@@ -35,35 +33,37 @@ function addProgressData(keyId, userId) {
         vToken: token 
     }
     inProgress.push(progressData)
-    console.log(`Added data, length: ${inProgress.length}`)
     return progressData
 }
 function genNewVToken(keyId) {
     getProgressData(keyId).vToken = randomWrds()
 }
-async function findTokenInProfile(userId, vToken) {
-    let profile = await Spidey.getUserById(userId)
-
-    // make sure everything is lowercase
-    let token = vToken.toLowerCase(),
-        blurb = profile.blurb.toLowerCase(),
-        status = profile.status.toLowerCase()
-
-    return blurb.includes(token) 
-    || status.includes(token)
+function findTokenInProfile(userId, vToken, spidey) {
+    return new Promise((resolve) => {
+        spidey.getUserById(userId)
+        .then(profile => {
+            let token = vToken.toLowerCase(),
+            blurb = profile.blurb.toLowerCase(),
+            status = profile.status.toLowerCase()
+    
+            resolve(blurb.includes(token) || 
+                status.includes(token)
+            )
+        })
+    })  
 }
-async function isUserInGroup(userId, groupId) {
-    let userGroups = await Spidey.getUserGroups(userId)
+async function isUserInGroup(userId, groupId, spidey) {
+    let userGroups = await spidey.getUserGroups(userId)
     return userGroups.find(userGroup =>
         userGroup.Id == groupId 
     )
 }
-async function userExists(searchVl) {
+async function userExists(searchVl, spidey) {
     let user;
     try {
-        if (typeof searchVl === 'string') user = await Spidey
+        if (typeof searchVl === 'string') user = await spidey
         .getUserByUsername(searchVl)
-        else user = await Spidey.getUserById(searchVl)
+        else user = await spidey.getUserById(searchVl)
         return user
     } catch(e) { return false }
 }
@@ -77,25 +77,26 @@ function unverify(keyId) {
     return true 
 }
 
-async function processV(keyId, userId) {
-
-    if (verifiedUsers.includes(keyId)) {
-        // User is verified, status code: 2
-        return { status: 2 }
-    }
-
-    let data = getProgressData(keyId)
-    if (!data) {
-        // User has not been setup, status code: 0
-        let data = addProgressData(keyId, userId)
-        return { status: 0, vToken: data.vToken }
-    } else {
-        // User is awaiting verification, status code: 1
-        if (await findTokenInProfile(data.userId, data.vToken)) {
-            return { status: 1, success: true }
-        } else return { status: 1, success: false, vToken: data.vToken }
-    }
-
+function processV(keyId, userId, spidey) {
+    return new Promise((resolve) => {
+        if (verifiedUsers.includes(keyId)) {
+            // User is verified, status code: 2
+            resolve({ status: 2 })
+        }
+        let data = getProgressData(keyId)
+        if (!data) {
+            // User has not been setup, status code: 0
+            let data = addProgressData(keyId, userId)
+            resolve({ status: 0, vToken: data.vToken })
+        } else {
+            // User is awaiting verification, status code: 1
+            findTokenInProfile(data.userId, data.vToken, spidey)
+            .then(wasFound => {
+                if (wasFound) resolve({ status: 1, success: true })
+                else resolve({ status: 1, success: false, vToken: data.vToken })
+            })
+        }
+    }) 
 }
 
 module.exports = {
@@ -103,14 +104,18 @@ module.exports = {
     unverify: unverify,
     resetToken: genNewVToken,
 
-    verify: async(keyId, userId, groupId) => {
-        if (!getProgressData(keyId) && userId) {
-            // Most likely the first attempt
-            let user = await userExists(userId)
-            if (!user) throw new Error('User does not exist.')
-            if (groupId && !await isUserInGroup(userId, groupId)) throw new Error('User is not in given group.')    
-        }
-        return processV(keyId, userId)
+    verify(keyId, userId, groupId) {
+        return new Promise(async (resolve, reject) => {
+            let spidey = new Roblox()
+            if (!getProgressData(keyId) && userId) {
+                let user = await userExists(userId, spidey)
+                if (!user) reject('User does not exist.')
+                if (groupId && !await isUserInGroup(userId, groupId, spidey)) reject('User is not in given group.')    
+            }
+            processV(keyId, userId, spidey)
+            .then(result => resolve(result))
+        })
+       
     }
 
 }
